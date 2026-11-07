@@ -543,7 +543,7 @@ function placeRings() { // metal rings along the top edge of the page, with punc
   let g = $('#rings'); if (!g) { g = document.createElement('div'); g.id = 'rings'; g.setAttribute('aria-hidden', 'true'); document.body.appendChild(g); }
   const v = $('#view').getBoundingClientRect(); if (!v.width) return;
   let left = v.left + 14; const tabs = $('#tabs'); // on desktop the ribbon tabs hang over the left of the top edge, so the rings start after them
-  if (innerWidth >= 900 && tabs?.lastElementChild) left = Math.max(left, tabs.lastElementChild.getBoundingClientRect().right + 26);
+  if (innerWidth >= 900 && tabs?.lastElementChild && !document.body.classList.contains('splashing')) left = Math.max(left, tabs.lastElementChild.getBoundingClientRect().right + 26); // while the cover is up the tabs are hidden, so the rings span the whole cover
   Object.assign(g.style, { left: left + 'px', width: Math.max(0, v.right - 14 - left) + 'px', top: (v.top - 13) + 'px' });
   for (const [i, up] of [[1, 6], [2, 11]]) { // the pages you've already flipped stay visible as sheet edges behind the rings
     let s = $('#sheet' + i); if (!s) { s = document.createElement('i'); s.id = 'sheet' + i; s.className = 'sheet-behind'; s.setAttribute('aria-hidden', 'true'); document.body.appendChild(s); }
@@ -910,8 +910,11 @@ function splash() {
   ], { duration: 2100, delay: 250, easing: 'ease-in-out', fill: 'both' });
   const MIN = reduce ? 1100 : 2900, t0 = performance.now(); let opened = false; // reduced motion: show the finished cover briefly, no animation
   const ready = () => !SYNC.wanted || SYNC.state !== 'boot'; // wait for sign-in / first sync, not just a timer
-  const gone = () => { el.remove(); document.body.classList.remove('splashing'); };
-  const open = () => { if (opened) return; opened = true; clearInterval(iv); SFX.play('flip'); el.classList.add('open'); setTimeout(gone, reduce ? 50 : 2000); };
+  // the page can change size while we wait (the tab ribbons appear once signed in), so the cover follows the real page until it starts to open
+  const fit = () => { const r = $('#view').getBoundingClientRect(); el.style.cssText = `--x:${r.left}px;--y:${r.top}px;--w:${r.width}px;--h:${r.height}px`; placeRings(); };
+  const ro = window.ResizeObserver ? new ResizeObserver(() => { if (!opened) fit(); }) : null; ro?.observe($('#view')); window.addEventListener('resize', fit);
+  const gone = () => { ro?.disconnect(); window.removeEventListener('resize', fit); el.remove(); document.body.classList.remove('splashing'); placeRings(); };
+  const open = () => { if (opened) return; fit(); opened = true; clearInterval(iv); SFX.play('flip'); el.classList.add('open'); setTimeout(gone, reduce ? 50 : 2000); };
   document.addEventListener('visibilitychange', () => { if (document.hidden && !opened) { opened = true; clearInterval(iv); gone(); } }, { once: true }); // tabbed away: don't hold the app hostage
   const iv = setInterval(() => { const dt = performance.now() - t0; if (dt > MIN && ready()) open(); else if (dt > MIN) el.classList.add('waiting'); if (dt > 12000) open(); }, 120);
   el.addEventListener('click', () => { if (performance.now() - t0 > 900 && ready()) open(); });

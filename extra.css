@@ -141,19 +141,6 @@
 .sheet-behind { position: fixed; z-index: 0; pointer-events: none; border-radius: 4px 12px 4px 8px; background: var(--grain), var(--parch-2); background-blend-mode: multiply, normal; box-shadow: 0 -1px 3px #0006, inset 0 0 30px #7a4e1a44; }
 #sheet2 { filter: brightness(.88); }
 
-/* ---- desktop overlap fixes: masthead + person strips share a half-page without colliding ---- */
-@media (min-width: 900px) {
-  /* date on the left, controls + countdown ticket beside it (not under it), so the half-page stays short enough to fit */
-  .masthead { gap: 1rem; flex-wrap: nowrap; justify-content: space-between; align-items: center; }
-  .masthead .sc { min-width: 0; flex: 0 1 auto; }
-  .masthead .date-big { font-size: min(2.8rem, 3.4vw); }
-  .mast-r { align-items: flex-end; flex: none; gap: .35rem; }
-  .tk-big { font-size: 2rem; } .tk-sm { max-width: 7.5rem; font-size: .95rem; }
-  .prow { flex-wrap: wrap; justify-content: center; gap: .5rem 1.6rem; }
-  .pinfo { flex: 1 1 100%; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: .15rem .9rem; }
-  .pinfo .who-tag { flex: none; }
-  .prow .mood-pol { width: 7rem; } .prow .mood-pol .im { height: 5rem; } .prow .plate-box { width: 6.4rem; } .prow .plate-box svg { width: 5.4rem; height: 5.4rem; }
-}
 
 /* ---- page-by-page simplification: bigger, clearer, one obvious thing to do ---- */
 /* hours */
@@ -248,22 +235,33 @@ body.splashing #rings { z-index: 301; } /* the rings stay on top of the cover wh
 
 /* desktop: bigger type, content spread down the page */
 @media (min-width: 900px) {
-  /* masthead: date and countdown ticket sit together instead of at opposite ends */
-  .masthead { justify-content: flex-start; align-items: center; gap: 2.2rem; }
-  .masthead .date-big { font-size: 3.6rem; }
-  .mast-r { display: flex; flex-direction: column; align-items: flex-start; gap: .5rem; padding-top: 0; }
-  .ticket-btn { margin: 0; }
-  .scrap.ticket { padding: .6rem 1.1rem .7rem; }
-  .tk-big { font-size: 3rem; } .tk-sm { font-size: 1.1rem; max-width: 11rem; }
+  /* (masthead, ticket and person-strip sizes live in the single desktop block at the END of this file) */
   /* the sign-in page stays the full page width (so the cover and the app are the same size); only its form is a narrow column */
   #view.v-gate > * { width: 100%; max-width: 30rem; margin-left: auto; margin-right: auto; }
-  .prow .mood-pol { width: 6rem; } .prow .mood-pol .im { height: 4.4rem; font-size: 2.6rem; } .prow .plate-box { width: 5.4rem; } .prow .plate-box svg { width: 4.6rem; height: 4.6rem; }
-  .pinfo .who-tag { font-size: 1.6rem; } .pinfo .now-st { font-size: 1.1rem; } .mood-when { font-size: 1.05rem; }
   .spread { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .spread > .pg { min-width: 0; }
   .verse-strip { min-width: 0; max-width: 100%; }
   html { font-size: clamp(14px, min(2.5dvh, 1.55vw), 24px); }
   .spread > .pg { justify-content: space-evenly; }
   .tl { margin-top: .8rem; }
+}
+
+/* ===== desktop: ONE consolidated block, last in the file so nothing earlier can override it =====
+   Today's masthead and person strips share a half-page without squeezing or colliding. */
+@media (min-width: 900px) {
+  /* the date keeps its natural width and is never clipped; the controls + ticket sit beside it, and only wrap below if there truly is no room */
+  .masthead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem 1rem; }
+  .masthead > .sc { flex: 0 0 auto; min-width: 0; }
+  .masthead .date-big { font-size: min(2.8rem, 3.2vw); white-space: nowrap; }
+  .mast-r { display: flex; flex-direction: column; align-items: flex-end; gap: .3rem; flex: none; padding-top: 0; }
+  .ticket-btn { margin: 0; }
+  .scrap.ticket { padding: .5rem .9rem .55rem; }
+  .tk-big { font-size: 2rem; } .tk-sm { max-width: 7rem; font-size: .95rem; }
+  /* person strips: name + status + mood time on one wrapping row on top, mood card and plate side by side below */
+  .prow { flex-wrap: wrap; justify-content: center; gap: .5rem 1.4rem; }
+  .pinfo { flex: 1 1 100%; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: .15rem .9rem; }
+  .pinfo .who-tag { flex: none; font-size: 1.6rem; } .pinfo .now-st { max-width: none; font-size: 1.1rem; } .mood-when { font-size: 1.05rem; }
+  .prow .mood-pol { width: 6.4rem; } .prow .mood-pol .im { height: 4.6rem; font-size: 2.6rem; }
+  .prow .plate-box { width: 5.6rem; } .prow .plate-box svg { width: 4.8rem; height: 4.8rem; }
 }
 
 /* ---------- plans: day / week ---------- */
