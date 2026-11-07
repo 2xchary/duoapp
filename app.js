@@ -146,6 +146,7 @@ function moodPol(w, rot) { // yours opens a quick mood update; theirs opens the 
   return `<button class="mood-pol" style="--r:${rot}deg" ${act} aria-label="${mine ? 'Change your mood' : 'See their mood'}"><span class="tape tc"></span>${img ? `<img class="im" src="${esc(img)}" alt="" onerror="this.outerHTML='<div class=im>${p.mood || '🦉'}</div>'">` : `<div class="im">${p.mood || '🦉'}</div>`}${img && p.mood ? `<span class="em">${p.mood}</span>` : ''}${mine ? '<span class="edit-badge">✎</span>' : ''}<div class="cap">${esc((p.text || '').slice(0, 24)) || '&nbsp;'}</div></button>`;
 }
 let mf = { mood: '', gif: '', text: '' }, gifTarget = 'owl';
+// (gp.why holds the short reason when a GIF search fails)
 function moodFormHTML() {
   return sc(`<div class="pk-head"><span>How are you feeling?</span><button data-act="close" aria-label="Close">✕</button></div>
     <div class="mood-grid">${MOODS.map(m => `<button class="mood big" aria-pressed="${mf.mood === m}" data-act="mfmood" data-m="${m}">${m}</button>`).join('')}</div>
@@ -387,7 +388,7 @@ function paintGifs() {
   if (gp.state === 'nokey') g.innerHTML = '<div class="pk-msg">Sign in to search GIFs.</div>';
   else if (gp.state === 'nofn') g.innerHTML = '<div class="pk-msg">GIF search isn\'t switched on yet. It needs the GIF function deployed in Supabase.</div>';
   else if (gp.state === 'loading') g.innerHTML = '<div class="pk-msg">fetching owls…</div>';
-  else if (gp.state === 'err') g.innerHTML = '<div class="pk-msg">The GIF owls got lost. Try again?</div>';
+  else if (gp.state === 'err') g.innerHTML = `<div class="pk-msg">The GIF owls got lost. Try again?${gp.why ? `<br><small>${esc(gp.why)}</small>` : ''}</div>`;
   else if (!gp.res.length) g.innerHTML = '<div class="pk-msg">Nothing found. Try another word.</div>';
   else g.innerHTML = gp.res.map((r, i) => `<button style="--r:${[-2, 1.5, -1, 2, -1.5, 1][i % 6]}deg" data-act="gifpick" data-u="${esc(r.url)}"><img src="${esc(r.thumb)}" alt="${esc(r.title)}"></button>`).join('');
   const pv = $('#gprev'), nx = $('#gnext'); if (pv) pv.disabled = gp.page === 0; if (nx) nx.disabled = gp.res.length < 6;
@@ -401,10 +402,16 @@ async function gifLoad() {
   gp.state = 'loading'; paintGifs();
   try {
     const { data, error } = await sb.functions.invoke(GIF_FN, { body: { q: gp.q, offset: gp.page * 6, limit: 6 } });
-    if (error) { gp.state = error.context?.status === 404 ? 'nofn' : 'err'; return paintGifs(); }
+    if (error) {
+      const status = error.context?.status; let why = '';
+      try { why = (await error.context.json()).error || ''; } catch { /* no JSON body */ }
+      gp.state = status === 404 ? 'nofn' : 'err';
+      gp.why = `${status ? 'HTTP ' + status + ': ' : ''}${why || error.message || 'unknown error'}`.slice(0, 140); // our function's own short reason, safe to show
+      return paintGifs();
+    }
     gp.res = Array.isArray(data?.results) ? data.results : [];
     gp.state = 'ok';
-  } catch { gp.state = 'err'; }
+  } catch (e) { gp.state = 'err'; gp.why = String(e?.message || e).slice(0, 140); }
   paintGifs();
 }
 
@@ -504,7 +511,6 @@ function repeatRowHTML(f) {
 }
 
 /* ---------- events ---------- */
-const flipTo = (to, dir, fn) => flip(dir || (tabIdx(to) - tabIdx(tab)) || 1, fn);
 function flip(dir, fn) {
   const el = $('#view'); SFX.play('flip');
   if (!S().me || !el.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return fn();
