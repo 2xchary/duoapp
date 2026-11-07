@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#1d1a2b"/>
+  <g transform="translate(256 262)">
+    <circle r="170" fill="#7a1f2b"/>
+    <circle r="170" fill="none" stroke="#a52f3e" stroke-width="10" stroke-dasharray="6 14"/>
+    <circle r="132" fill="none" stroke="#5a1220" stroke-width="6"/>
+    <!-- owl -->
+    <path d="M-70 -70 L-52 -105 L-25 -78 Q0 -90 25 -78 L52 -105 L70 -70 Q86 -10 60 50 Q30 100 0 100 Q-30 100 -60 50 Q-86 -10 -70 -70Z" fill="#e9d9b4"/>
+    <circle cx="-30" cy="-25" r="26" fill="#1d1a2b"/><circle cx="30" cy="-25" r="26" fill="#1d1a2b"/>
+    <circle cx="-30" cy="-25" r="10" fill="#e9c15a"/><circle cx="30" cy="-25" r="10" fill="#e9c15a"/>
+    <path d="M-9 5 L9 5 L0 28Z" fill="#b8892b"/>
+    <path d="M-34 40 Q0 62 34 40 M-30 62 Q0 82 30 62" stroke="#b9a57a" stroke-width="6" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

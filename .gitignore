@@ -1,0 +1,78 @@
+# ---- Secrets: never commit these ----
+# config.js holds YOUR real keys (Giphy, Supabase). It stays on your computer only.
+# The live site gets its copy from GitHub Secrets at deploy time (see .github/workflows/pages.yml).
+# config.example.js (blank placeholders) is the committed template.
+config.js
+# local-only test helpers (they contain real names)
+tests/
+.env
+.env.*
+!.env.example
+*.env
+*.local
+config.local.js
+secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+*.jks
+id_rsa*
+id_ed25519*
+*.ppk
+service-account*.json
+*credentials*.json
+*-adminsdk-*.json
+*.token
+*.secret
+*.secrets
+
+# ---- Supabase / Vercel / tooling local state ----
+supabase/.temp/
+supabase/.branches/
+supabase/.env*
+supabase/seed.local.sql
+*.dump
+*.backup
+.vercel/
+.netlify/
+.firebase/
+.wrangler/
+.dev.vars
+
+# ---- Dependencies, builds, caches ----
+node_modules/
+dist/
+build/
+.cache/
+.parcel-cache/
+.npm/
+.eslintcache
+*.tsbuildinfo
+coverage/
+
+# ---- Editor, OS and assistant files ----
+.claude/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ---- Logs and scratch ----
+*.log
+npm-debug.log*
+tmp/
+temp/
+scratch/
+scratchpad/
+test-results/
+*.zip
+*.orig
+*.rej
+_site/
