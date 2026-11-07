@@ -16,6 +16,8 @@ for f in $files; do
   case "$f" in
     config.js|*/config.js)
       echo "BLOCKED: '$f' holds your real keys. It is gitignored on purpose; commit config.example.js instead."; bad=1;;
+    supabase/create-accounts.sql)
+      echo "BLOCKED: '$f' holds real emails and passwords. Only supabase/create-accounts.example.sql may be committed."; bad=1;;
     .env|.env.*|*.env|*.pem|*.key|*.p12|*.pfx|*.ppk|id_rsa*|id_ed25519*|*service-account*.json|*credentials*.json|*-adminsdk-*.json|*.sqlite|*.db|*.dump|tests/*)
       echo "BLOCKED: '$f' looks like a secrets / local-only file. Unstage it:  git restore --staged '$f'"; bad=1;;
   esac

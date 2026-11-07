@@ -5,6 +5,8 @@
 config.js
 # local-only test helpers (they contain real names)
 tests/
+# the filled-in account script holds real emails and passwords. Only the .example.sql template is committed.
+supabase/create-accounts.sql
 .env
 .env.*
 !.env.example

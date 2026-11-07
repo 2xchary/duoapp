@@ -164,7 +164,7 @@ function render() {
   const el = $('#view'); el.className = 'v-' + tab; el.innerHTML = v;
   afterRender();
 }
-function afterRender() { if (tab === 'notes' && notesMode === 'write') padInit(); tickNow(); }
+function afterRender() { if (tab === 'notes' && notesMode === 'write') padInit(); tickNow(); placeRings(); }
 
 function renderWho() {
   $('#tabs').innerHTML = '';
@@ -507,18 +507,35 @@ function flip(dir, fn) {
   document.querySelectorAll('.leaf').forEach(n => n.remove());
   const r = el.getBoundingClientRect(), leaf = document.createElement('div');
   leaf.className = 'leaf';
-  Object.assign(leaf.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', transformOrigin: dir > 0 ? 'left center' : 'right center' });
-  const front = document.createElement('div'); front.className = 'face front';
-  const c = el.cloneNode(true); c.querySelectorAll('[id]').forEach(n => n.removeAttribute('id')); front.appendChild(c);
-  const back = document.createElement('div'); back.className = 'face back';
-  leaf.append(front, back); document.body.appendChild(leaf);
-  fn();
-  const s = dir > 0 ? -1 : 1;
-  leaf.animate([
-    { transform: 'perspective(1800px) rotateY(0deg)', filter: 'brightness(1)' },
-    { transform: `perspective(1800px) rotateY(${s * 80}deg)`, filter: 'brightness(.78)', offset: .45 },
-    { transform: `perspective(1800px) rotateY(${s * 178}deg)`, filter: 'brightness(.95)' },
-  ], { duration: 720, easing: 'cubic-bezier(.45,.05,.25,1)', fill: 'forwards' }).onfinish = () => leaf.remove();
+  // ring-notebook flip: the page hinges on the rings along the top edge.
+  // Forward: the old page lifts toward you and flips up over the rings. Back: the page drops down onto the rings again.
+  Object.assign(leaf.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', transformOrigin: 'center top' });
+  const build = () => { // the sheet that swings: a copy of the page on its front, ruled paper on its back
+    const front = document.createElement('div'); front.className = 'face front';
+    const c = el.cloneNode(true); c.querySelectorAll('[id]').forEach(n => n.removeAttribute('id')); front.appendChild(c);
+    const back = document.createElement('div'); back.className = 'face back';
+    leaf.append(front, back); document.body.appendChild(leaf);
+  };
+  const P = 'perspective(2600px) rotateX(';
+  if (dir > 0) { build(); fn(); landed(); } else { fn(); build(); } // forward copies the OLD page first; back copies the NEW page after it renders
+  const frames = dir > 0
+    ? [{ transform: P + '0deg)', filter: 'brightness(1)' }, { transform: P + '75deg)', filter: 'brightness(.82)', offset: .45 }, { transform: P + '178deg)', filter: 'brightness(.96)' }]
+    : [{ transform: P + '178deg)', filter: 'brightness(.96)' }, { transform: P + '75deg)', filter: 'brightness(.82)', offset: .55 }, { transform: P + '0deg)', filter: 'brightness(1)' }];
+  leaf.animate(frames, { duration: 760, easing: 'cubic-bezier(.45,.05,.25,1)', fill: 'both' }).onfinish = () => leaf.remove();
+}
+function placeRings() { // metal rings along the top edge of the page, with punched holes (they stay put while pages flip)
+  let g = $('#rings'); if (!g) { g = document.createElement('div'); g.id = 'rings'; g.setAttribute('aria-hidden', 'true'); document.body.appendChild(g); }
+  const v = $('#view').getBoundingClientRect(); if (!v.width) return;
+  let left = v.left + 14; const tabs = $('#tabs'); // on desktop the ribbon tabs hang over the left of the top edge, so the rings start after them
+  if (innerWidth >= 900 && tabs?.lastElementChild) left = Math.max(left, tabs.lastElementChild.getBoundingClientRect().right + 26);
+  Object.assign(g.style, { left: left + 'px', width: Math.max(0, v.right - 14 - left) + 'px', top: (v.top - 13) + 'px' });
+  for (const [i, up] of [[1, 6], [2, 11]]) { // the pages you've already flipped stay visible as sheet edges behind the rings
+    let s = $('#sheet' + i); if (!s) { s = document.createElement('i'); s.id = 'sheet' + i; s.className = 'sheet-behind'; s.setAttribute('aria-hidden', 'true'); document.body.appendChild(s); }
+    Object.assign(s.style, { left: (v.left + i * 4) + 'px', top: (v.top - up) + 'px', width: Math.max(0, v.width - i * 8) + 'px', height: v.height + 'px' });
+  }
+}
+function landed() { // a flipped page settles behind the rings: the stack bumps up a little
+  [$('#sheet1'), $('#sheet2')].forEach((s, i) => s?.animate([{ transform: 'translateY(0)' }, { transform: `translateY(${-5 - i * 2}px)` }, { transform: 'translateY(0)' }], { duration: 380, delay: 500 + i * 70, easing: 'ease-out' }));
 }
 const tabIdx = id => TABS.findIndex(t => t[0] === id);
 const go = to => { if (to === tab) return; flip(tabIdx(to) - tabIdx(tab), () => { tab = to; if (tab !== 'sched' && tab !== 'plans') viewDate = new Date(); render(); }); };
@@ -654,7 +671,8 @@ document.addEventListener('input', e => {
   if (e.target.id === 'dnote') { store.day(dkey(viewDate)).note = e.target.value; store.save(); }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.target.id === 'lpass' || e.target.id === 'lemail')) doLogin(); if (e.key === 'Enter' && e.target.id === 'gq') { gp.q = e.target.value.trim(); gp.page = 0; gifLoad(); } if (e.key === 'Escape') closeSheet(); });
-window.addEventListener('resize', () => { if (tab === 'notes' && notesMode === 'write') padInit(); });
+window.addEventListener('resize', () => { if (tab === 'notes' && notesMode === 'write') padInit(); placeRings(); });
+if (window.ResizeObserver) new ResizeObserver(() => placeRings()).observe(document.querySelector('#view'));
 
 /* demo data so the first run isn't empty; goes away once real sync exists */
 function seedDemo() {
@@ -838,7 +856,7 @@ async function signOut() {
 }
 const whoamiHTML = () => sc(`<div class="pk-head"><span>Signed in</span><button data-act="close" aria-label="Close">✕</button></div><div class="margin-note">${esc(SYNC.email)}</div><div class="row" style="justify-content:space-between"><button class="btn small ghost" data-act="close">Stay</button><button class="btn alt small" data-act="signout">Sign out</button></div>`, 'cream', 0, 'tc');
 function renderGate() {
-  $('#tabs').innerHTML = ''; const v = $('#view'); v.className = 'v-gate'; const st = SYNC.state;
+  $('#tabs').innerHTML = ''; const v = $('#view'); v.className = 'v-gate'; const st = SYNC.state; placeRings();
   if (st === 'login') v.innerHTML = `${sc('<span class="date-big">Enter the<br>Owlery</span><p class="kicker">Sign in with the email and password you made for this app. It stays on this phone.</p>', 'lined', -1.2, 'tl')}
     <label class="small">Email</label><input class="field" id="lemail" type="email" autocomplete="username" inputmode="email" autocapitalize="none" value="${esc(SYNC.draft)}">
     <label class="small">Password</label><input class="field" id="lpass" type="password" autocomplete="current-password">
