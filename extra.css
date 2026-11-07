@@ -49,7 +49,9 @@
 .e-letter { left: 8%; right: 8%; top: 8%; height: 80%; background: #fbf6e8; display: grid; place-items: center; font-size: 3rem; transition: transform .8s .45s cubic-bezier(.3,1.2,.5,1); border-radius: 2px; box-shadow: 0 0 4px #0003; }
 .e-front { inset: 0; background: linear-gradient(180deg, #d9b97d, #c9a46a); clip-path: polygon(0 0, 50% 58%, 100% 0, 100% 100%, 0 100%); pointer-events: none; z-index: 2; }
 .e-flap { left: 0; right: 0; top: 0; height: 58%; background: #bf9a5e; clip-path: polygon(0 0, 100% 0, 50% 100%); transform-origin: top; transition: transform .6s; backface-visibility: hidden; z-index: 3; }
-.envelope.open .e-flap { transform: rotateX(180deg); }
+.e-seal { z-index: 4; }
+.e-seal { left: calc(50% - 1.3rem); top: calc(58% - 1.5rem); width: 2.6rem; height: 2.6rem; border-radius: 52% 48% 55% 45%; background: radial-gradient(circle at 35% 30%, #d1485a, #7a1f2b 55%, #4d0f19); box-shadow: 0 3px 5px #0006; display: grid; place-items: center; font-size: 1.3rem; transition: opacity .3s, transform .3s; }
+.envelope.open .e-flap { transform: rotateX(180deg); } .envelope.open .e-seal { opacity: 0; transform: scale(1.8) rotate(25deg); }
 .envelope.open .e-letter { transform: translateY(-70%) rotate(-4deg); z-index: 3; }
 @keyframes bounce { 0%, 100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-10px) rotate(1.5deg); } }
 
@@ -87,6 +89,9 @@
 .verse-strip em { flex: none; font-style: normal; font-family: var(--hand); font-weight: 700; color: var(--wine); font-size: 1.05rem; }
 .verse-text { font-style: italic; font-size: 1.15rem; line-height: 1.3; }
 .verse-ref { font-family: var(--hand); font-weight: 700; font-size: 1.2rem; color: var(--wine); text-align: right; }
+.mini-seal { display: inline-block; width: .95rem; height: .95rem; border-radius: 50%; vertical-align: -.1rem; margin-right: .3rem; background: radial-gradient(circle at 35% 30%, #cbb990, #a79468 70%); border: 1.5px dashed #8d7a5099; }
+.mini-seal.on { background: radial-gradient(circle at 35% 30%, #d1485a, #7a1f2b 60%, #4d0f19); border: 0; box-shadow: 0 1px 2px #0006; }
+.mini-seal.on::after { content: "✝"; color: #f6d9a8; font-size: .6rem; display: grid; place-items: center; height: 100%; }
 .free-head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
 .tb-key { font-family: var(--hand); font-weight: 700; font-size: .9rem; color: var(--ink-soft); white-space: nowrap; line-height: 1; }
 .tb-key i { display: inline-block; width: .8rem; height: .6rem; margin: 0 .15rem 0 .4rem; vertical-align: -.05rem; border-radius: 2px; }
@@ -138,11 +143,12 @@
 
 /* ---- desktop overlap fixes: masthead + person strips share a half-page without colliding ---- */
 @media (min-width: 900px) {
-  .masthead { gap: 1.2rem; flex-wrap: wrap; justify-content: flex-start; }
-  .masthead .sc { min-width: 0; }
-  .masthead .date-big { font-size: min(3.2rem, 4vw); }
-  .mast-r { align-items: flex-start; }
-  .tk-big { font-size: 2.4rem; } .tk-sm { max-width: 9rem; font-size: 1rem; }
+  /* date on the left, controls + countdown ticket beside it (not under it), so the half-page stays short enough to fit */
+  .masthead { gap: 1rem; flex-wrap: nowrap; justify-content: space-between; align-items: center; }
+  .masthead .sc { min-width: 0; flex: 0 1 auto; }
+  .masthead .date-big { font-size: min(2.8rem, 3.4vw); }
+  .mast-r { align-items: flex-end; flex: none; gap: .35rem; }
+  .tk-big { font-size: 2rem; } .tk-sm { max-width: 7.5rem; font-size: .95rem; }
   .prow { flex-wrap: wrap; justify-content: center; gap: .5rem 1.6rem; }
   .pinfo { flex: 1 1 100%; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: .15rem .9rem; }
   .pinfo .who-tag { flex: none; }
@@ -158,8 +164,15 @@
 /* plans */
 .verdict.big { font-size: 1.9rem; line-height: 1.05; padding: .2rem 0; }
 .chips.big { gap: .7rem; align-content: flex-start; padding: .8rem .2rem .2rem; }
-.chips.big .chip { font-size: 1.65rem; padding: .6rem 1.1rem .5rem; flex: 1 1 40%; text-align: center; } .chips.big .chip .dot { width: 1.5rem; height: 1.5rem; font-size: .95rem; }
+.chips.big .chip { font-size: 1.65rem; padding: .6rem 1.1rem .5rem; flex: 1 1 40%; text-align: center; }
+.chips.big .chip .votes { top: -.7rem; right: -.2rem; } .chips.big .chip .dot { width: 1.5rem; height: 1.5rem; font-size: .95rem; }
 .btn.wide { width: 100%; font-size: 1.45rem; padding: .65rem 1rem .55rem; flex: none; }
+/* dinner dishes: the tiles share whatever room is left, so every dish AND the Hat button are always visible */
+.chips.big { display: grid; grid-template-columns: repeat(auto-fill, minmax(7.2rem, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: .6rem; align-content: stretch; container-type: size; overflow: visible; padding: .8rem .2rem .2rem; flex: 1; min-height: 0; }
+/* --rows and --cols are set from the real layout (fitChips in app.js); text is sized by BOTH the row height and the tile width */
+.chips.big .chip { display: flex; align-items: center; justify-content: center; text-align: center; min-height: 0; padding: 0 .5rem; overflow: hidden; flex: none; line-height: .98; overflow-wrap: anywhere;
+  font-size: 1.3rem; font-size: clamp(.75rem, min(calc(100cqh / var(--rows, 3) * .36), calc(100cqw / var(--cols, 2) * .2)), 1.65rem); }
+.chips.big .chip .votes { overflow: visible; }
 /* owl wall caption: never cut a message off. The photo gives up space instead, and long text gets a smaller size. */
 .polaroid .cap { max-height: none; overflow: visible; flex: none; overflow-wrap: anywhere; font-size: 1.9rem; line-height: 1; }
 .polaroid .cap.md { font-size: 1.7rem; } .polaroid .cap.sm { font-size: 1.5rem; } .polaroid .cap.xs { font-size: 1.35rem; line-height: 1.05; }
@@ -208,8 +221,9 @@
 .sp-title { font-family: var(--scrawl); font-size: min(8.4rem, 31vw); line-height: .8; color: #e6bf5c; filter: drop-shadow(0 3px 2px #000a); }
 .sp-title span { display: inline-block; -webkit-text-stroke: 2px #d9a840; background: linear-gradient(180deg, #fbe9a6, #c9983a 60%, #a8782a); -webkit-background-clip: text; background-clip: text; color: transparent; clip-path: inset(0 100% 0 0); animation: spwrite 1.1s cubic-bezier(.5, 0, .3, 1) 1.75s forwards; padding: 0 .1em; }
 .sp-sub { font-style: italic; color: #e6c887; font-size: 1.1rem; letter-spacing: .06em; opacity: 0; animation: spfade 1s ease 2.5s forwards; }
-.sp-env{ position: absolute; left: 50%; bottom: 11%; }
+.sp-env, .sp-seal { position: absolute; left: 50%; bottom: 11%; }
 .sp-env { font-size: 2.6rem; margin-left: -1.3rem; opacity: 0; animation: spenv .7s ease-in .95s forwards; }
+.sp-seal { width: 3.6rem; height: 3.6rem; margin-left: -1.8rem; border-radius: 52% 48% 55% 45% / 48% 54% 46% 52%; background: radial-gradient(circle at 35% 30%, #e25a6c, #a02a3a 55%, #5a1220); box-shadow: 0 4px 8px #000a, inset 0 -3px 5px #0006, inset 0 3px 4px #fff4; display: grid; place-items: center; font-size: 1.7rem; opacity: 0; animation: spseal .55s cubic-bezier(.3, 1.6, .5, 1) 1.5s forwards; }
 .sp-wait { position: absolute; left: 0; right: 0; bottom: 3.2rem; font-family: var(--hand); font-weight: 700; font-size: 1.15rem; color: #e6c887; opacity: 0; transition: opacity .4s; }
 #splash.waiting .sp-wait { opacity: .9; } .sp-wait i { font-style: normal; animation: tw 1.2s infinite; } .sp-wait i:nth-child(2) { animation-delay: .2s; } .sp-wait i:nth-child(3) { animation-delay: .4s; }
 .sp-fly { position: absolute; left: 0; top: 0; z-index: 3; width: 64px; opacity: 0; pointer-events: none; }
@@ -256,6 +270,7 @@ body.splashing #rings { z-index: 301; } /* the rings stay on top of the cover wh
 .seg { display: flex; justify-content: center; gap: .4rem; flex: none; }
 .seg button { font-family: var(--hand); font-weight: 700; font-size: 1.2rem; line-height: 1; padding: .15rem .9rem; border-radius: 3px 9px 4px 8px; background: #dcc794; color: var(--ink-soft); box-shadow: 1px 2px 0 #0003; }
 .seg button[aria-pressed="true"] { background: var(--wine); color: var(--parch); transform: rotate(-1.5deg) scale(1.06); }
+.wk-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 .7rem; font-family: var(--hand); font-weight: 600; font-size: .95rem; color: var(--ink-soft); flex: none; line-height: 1.1; }
 .wk { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: .35rem; }
 .wk-row { flex: 1; min-height: 0; display: flex; align-items: center; gap: .5rem; padding: 0 .3rem; background: var(--grain), #f8eed6cc; background-blend-mode: multiply, normal; box-shadow: 1px 2px 5px #3a240f44; transform: rotate(var(--r, 0deg)); border-radius: 2px 6px 3px 6px; }
 .wk-row:nth-child(odd) { --r: -.4deg; } .wk-row:nth-child(even) { --r: .4deg; }

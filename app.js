@@ -165,7 +165,12 @@ function render() {
   const el = $('#view'); el.className = 'v-' + tab; el.innerHTML = v;
   afterRender();
 }
-function afterRender() { if (tab === 'notes' && notesMode === 'write') padInit(); tickNow(); placeRings(); }
+function fitChips() { // the dish tiles pick their own number of columns; tell the CSS how many rows/columns that came to
+  const c = $('.chips.big'); if (!c) return;
+  const cols = Math.max(1, getComputedStyle(c).gridTemplateColumns.split(' ').filter(Boolean).length), n = c.children.length;
+  c.style.setProperty('--cols', cols); c.style.setProperty('--rows', Math.max(1, Math.ceil(n / cols)));
+}
+function afterRender() { if (tab === 'notes' && notesMode === 'write') padInit(); tickNow(); placeRings(); fitChips(); }
 
 function renderWho() {
   $('#tabs').innerHTML = '';
@@ -275,7 +280,7 @@ function viewPlans() {
     <div class="stickers">${DAY_TYPES.map((t, i) => `<button class="sticker" style="--r:${tilt[i]}deg" aria-pressed="${day.type === t.id}" data-act="type" data-id="${t.id}"><span class="e">${t.e}</span>${t.t}</button>`).join('')}</div>
     ${day.type === 'dinner' ? `
       <div class="verdict big">${verdict}</div>
-      <div class="chips big">${chips}</div>
+      <div class="chips big" style="--rows:${Math.max(1, Math.ceil(S().meals.length / 2))}">${chips}</div>
       <div class="inline-add"><input id="newMeal" placeholder="add a dish…" maxlength="30"><button class="btn small" data-act="addmeal">Add</button></div>
       <button class="btn alt wide" data-act="hat">🎩 Let the Hat decide</button>`
     : sc(`<div class="margin-note">${day.type ? DECREES[day.type] : 'Pick a sticker. The owls are waiting.'}</div><textarea class="field" id="dnote" maxlength="200" placeholder="${day.type ? 'Details: which movie? what time?' : ''}" ${day.type ? '' : 'disabled'}>${esc(day.note)}</textarea>`, 'lined', -.5, 'tc', 'grow')}`;
@@ -345,11 +350,13 @@ function viewWord() {
   const mine = day[me].bible || { done: false, passage: '' };
   const week = w => Array.from({ length: 7 }, (_, i) => { const d = addDays(new Date(), i - 6), done = S().days[dkey(d)]?.[w].bible?.done; return `<i class="cd ${done ? 'on' : ''} ${i === 6 ? 'today' : ''}"></i>`; }).join('');
   const row = w => `<div class="streak-row"><div class="nm" style="color:var(--${w === me ? 'me' : 'her'})">${esc(N[w])}</div><div class="n">${streak(w)}</div><div class="candles">${week(w)}</div></div>`;
-  return `
+  return `<div class="spread"><section class="pg">
     <span class="date-big">Daily Word</span><div class="kicker">${pretty(new Date(), true)} · Bible-based, KJV</div>
     ${sc(`<div class="kicker">Verse of the day</div><div class="verse-text">“${esc(verseOf(new Date()).t)}”</div><div class="verse-ref">— ${esc(verseOf(new Date()).r)}</div>`, 'cream', -.8, 'tl')}
     ${sc(`<label class="small">Today's passage</label><input class="field" id="passage" value="${esc(mine.passage)}" placeholder="e.g. ${esc(verseOf(new Date()).r)}"><button class="chk" data-act="bible" style="margin-top:.6rem"><span class="box">${mine.done ? '✓' : ''}</span>I read it today</button>`, 'lined', -1, 'tc')}
-    ${sc(`${row(me)}${row(her)}<div class="note-line center">${day[her].bible?.done ? `${esc(N[her])} read <i>${esc(day[her].bible.passage || 'something good')}</i> ✓` : `${esc(N[her])} hasn't yet. Send a gentle owl.`}</div>`, 'cream', .8, 'tr red')}`;
+    </section><section class="pg">
+    ${sc(`${row(me)}${row(her)}<div class="note-line center">${day[her].bible?.done ? `${esc(N[her])} read <i>${esc(day[her].bible.passage || 'something good')}</i> ✓` : `${esc(N[her])} hasn't yet. Send a gentle owl.`}</div>`, 'cream', .8, 'tr red')}
+    </section></div>`;
 }
 
 /* ---------- sheets (modal) ---------- */
@@ -680,7 +687,7 @@ document.addEventListener('input', e => {
   if (e.target.id === 'dnote') { store.day(dkey(viewDate)).note = e.target.value; store.save(); }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.target.id === 'lpass' || e.target.id === 'lemail')) doLogin(); if (e.key === 'Enter' && e.target.id === 'gq') { gp.q = e.target.value.trim(); gp.page = 0; gifLoad(); } if (e.key === 'Escape') closeSheet(); });
-window.addEventListener('resize', () => { if (tab === 'notes' && notesMode === 'write') padInit(); placeRings(); });
+window.addEventListener('resize', () => { if (tab === 'notes' && notesMode === 'write') padInit(); placeRings(); fitChips(); });
 if (window.ResizeObserver) new ResizeObserver(() => placeRings()).observe(document.querySelector('#view'));
 
 /* demo data so the first run isn't empty; goes away once real sync exists */
