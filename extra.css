@@ -160,6 +160,13 @@
 .chips.big { gap: .7rem; align-content: flex-start; padding: .8rem .2rem .2rem; }
 .chips.big .chip { font-size: 1.65rem; padding: .6rem 1.1rem .5rem; flex: 1 1 40%; text-align: center; } .chips.big .chip .dot { width: 1.5rem; height: 1.5rem; font-size: .95rem; }
 .btn.wide { width: 100%; font-size: 1.45rem; padding: .65rem 1rem .55rem; flex: none; }
+/* owl wall caption: never cut a message off. The photo gives up space instead, and long text gets a smaller size. */
+.polaroid .cap { max-height: none; overflow: visible; flex: none; overflow-wrap: anywhere; font-size: 1.9rem; line-height: 1; }
+.polaroid .cap.md { font-size: 1.7rem; } .polaroid .cap.sm { font-size: 1.5rem; } .polaroid .cap.xs { font-size: 1.35rem; line-height: 1.05; }
+/* the photo area is its own box: the GIF sticker sits on the photo and can never land on the caption */
+.polaroid .phwrap { position: relative; flex: 1; min-height: 3rem; display: flex; }
+.polaroid .phwrap .ph { flex: 1; min-width: 0; min-height: 0; height: auto; }
+.polaroid .phwrap .gif { position: absolute; right: -.7rem; bottom: .9rem; width: 40%; max-height: 52%; }
 /* owl wall: an emoji-only post gets a warm, big, friendly card instead of an empty grey box */
 .polaroid .ph:not(img) { font-size: 7.5rem; background: linear-gradient(145deg, #fdecc6, #f4cf9a); }
 .wallnav { font-size: 1.35rem; } .wallnav button { font-size: 2.6rem; padding: 0 1rem; }

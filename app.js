@@ -284,9 +284,8 @@ function viewPlans() {
 function pingHTML(p) {
   const N = S().names, img = p.photo;
   return `<div class="polaroid" style="--r:${(p.id % 5) - 2}deg"><span class="tape tc"></span>
-    ${img ? `<img class="ph" src="${img}" alt="">` : `<div class="ph">${p.mood || '🦉'}</div>`}
-    ${p.gif ? `<img class="gif" src="${esc(p.gif)}" alt="" onerror="this.remove()">` : ''}
-    <div class="cap">${p.mood && img ? p.mood + ' ' : ''}${esc(p.text)}</div>
+    <div class="phwrap">${img ? `<img class="ph" src="${img}" alt="">` : `<div class="ph">${p.mood || '🦉'}</div>`}${p.gif ? `<img class="gif" src="${esc(p.gif)}" alt="" onerror="this.remove()">` : ''}</div>
+    <div class="cap ${(p.text || '').length > 90 ? 'xs' : (p.text || '').length > 50 ? 'sm' : (p.text || '').length > 28 ? 'md' : ''}">${p.mood && img ? p.mood + ' ' : ''}${esc(p.text)}</div>
     <div class="by">${esc(N[p.by])}, ${new Date(p.t).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' })}</div></div>`;
 }
 function dueNow() {
