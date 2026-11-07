@@ -215,6 +215,18 @@
 .sp-fly { position: absolute; left: 0; top: 0; z-index: 3; width: 64px; opacity: 0; pointer-events: none; }
 .sp-fly svg { width: 100%; height: auto; fill: #e2d6b3; overflow: visible; filter: drop-shadow(0 4px 8px #0008); } .sp-fly .wing { transform-box: fill-box; animation: flap .2s ease-in-out infinite alternate; }
 .sp-fly .wl { transform-origin: 100% 100%; } .sp-fly .wr { transform-origin: 0 100%; animation-name: flapr; }
+/* the cover is a notebook cover: it hinges on the rings along the top and flips up and over them, like the pages do */
+#splash .cover { transform-origin: center top; }
+#splash.open .cover { transform: perspective(2600px) rotateX(178deg); }
+#splash .back { transform: rotateX(180deg);
+  background: radial-gradient(circle at 15px 21px, #2b1a0c77 0 4.4px, transparent 5px) 0 0 / 30px 30px repeat-x, var(--grain), repeating-linear-gradient(#0000 0 1.45rem, #7ea0c444 1.45rem calc(1.45rem + 1px)), var(--parch-2);
+  background-blend-mode: normal, multiply, normal, normal; }
+body.splashing #rings { z-index: 301; } /* the rings stay on top of the cover while it opens */
+/* reduced motion / "animations off": show the finished cover (nothing hidden waiting for an animation), then fade away */
+@media (prefers-reduced-motion: reduce) {
+  .sp-emblem, .sp-sub, .sp-seal { opacity: 1; } .sp-title span { clip-path: none; } .sp-env, .sp-fly { display: none; }
+  #splash.open { display: none; }
+}
 @keyframes spfade { to { opacity: 1; } }
 @keyframes spwrite { to { clip-path: inset(0 0 0 0); } }
 @keyframes spenv { 0% { opacity: 0; transform: translate(-26vw, -34vh) rotate(-35deg) scale(.5); } 15% { opacity: 1; } 78% { opacity: 1; transform: translate(0, 0) rotate(0) scale(1.5); } 100% { opacity: 0; transform: translate(0, 0) rotate(0) scale(.9); } }
@@ -229,7 +241,8 @@
   .ticket-btn { margin: 0; }
   .scrap.ticket { padding: .6rem 1.1rem .7rem; }
   .tk-big { font-size: 3rem; } .tk-sm { font-size: 1.1rem; max-width: 11rem; }
-  #view.v-gate { max-width: 30rem; margin-left: auto; margin-right: auto; }
+  /* the sign-in page stays the full page width (so the cover and the app are the same size); only its form is a narrow column */
+  #view.v-gate > * { width: 100%; max-width: 30rem; margin-left: auto; margin-right: auto; }
   .prow .mood-pol { width: 6rem; } .prow .mood-pol .im { height: 4.4rem; font-size: 2.6rem; } .prow .plate-box { width: 5.4rem; } .prow .plate-box svg { width: 4.6rem; height: 4.6rem; }
   .pinfo .who-tag { font-size: 1.6rem; } .pinfo .now-st { font-size: 1.1rem; } .mood-when { font-size: 1.05rem; }
   .spread { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .spread > .pg { min-width: 0; }

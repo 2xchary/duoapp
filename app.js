@@ -384,21 +384,25 @@ function gifPickerHTML() {
 }
 function paintGifs() {
   const g = $('#gg'); if (!g) return;
-  if (gp.state === 'nokey') g.innerHTML = '<div class="pk-msg">GIF search needs a free Giphy key in config.js. Until then, nothing to see here.</div>';
+  if (gp.state === 'nokey') g.innerHTML = '<div class="pk-msg">Sign in to search GIFs.</div>';
+  else if (gp.state === 'nofn') g.innerHTML = '<div class="pk-msg">GIF search isn\'t switched on yet. It needs the GIF function deployed in Supabase.</div>';
   else if (gp.state === 'loading') g.innerHTML = '<div class="pk-msg">fetching owls…</div>';
   else if (gp.state === 'err') g.innerHTML = '<div class="pk-msg">The GIF owls got lost. Try again?</div>';
   else if (!gp.res.length) g.innerHTML = '<div class="pk-msg">Nothing found. Try another word.</div>';
   else g.innerHTML = gp.res.map((r, i) => `<button style="--r:${[-2, 1.5, -1, 2, -1.5, 1][i % 6]}deg" data-act="gifpick" data-u="${esc(r.url)}"><img src="${esc(r.thumb)}" alt="${esc(r.title)}"></button>`).join('');
   const pv = $('#gprev'), nx = $('#gnext'); if (pv) pv.disabled = gp.page === 0; if (nx) nx.disabled = gp.res.length < 6;
 }
+// URL name ("slug") of the GIF function in Supabase. Supabase picked this one itself when the function was created;
+// renaming it in the dashboard only changes its label, not this address.
+const GIF_FN = 'dynamic-endpoint';
 async function gifLoad() {
-  if (!CFG.GIPHY_KEY) { gp.state = 'nokey'; return paintGifs(); }
+  // The Giphy key is NOT in this app. Searches go to the "giphy" Supabase function, which holds the key and only answers signed-in members.
+  if (!SYNC.on) { gp.state = 'nokey'; return paintGifs(); }
   gp.state = 'loading'; paintGifs();
   try {
-    const base = 'https://api.giphy.com/v1/gifs/', off = gp.page * 6;
-    const u = gp.q ? `${base}search?api_key=${CFG.GIPHY_KEY}&q=${encodeURIComponent(gp.q)}&limit=6&offset=${off}&rating=pg-13` : `${base}trending?api_key=${CFG.GIPHY_KEY}&limit=6&offset=${off}&rating=pg-13`;
-    const j = await (await fetch(u)).json();
-    gp.res = (j.data || []).map(g => ({ id: g.id, title: g.title, thumb: g.images.fixed_width_small?.url || g.images.fixed_width.url, url: g.images.fixed_width.url }));
+    const { data, error } = await sb.functions.invoke(GIF_FN, { body: { q: gp.q, offset: gp.page * 6, limit: 6 } });
+    if (error) { gp.state = error.context?.status === 404 ? 'nofn' : 'err'; return paintGifs(); }
+    gp.res = Array.isArray(data?.results) ? data.results : [];
     gp.state = 'ok';
   } catch { gp.state = 'err'; }
   paintGifs();
@@ -878,8 +882,8 @@ async function boot() {
 
 /* ---------- opening screen: a leather cover that opens like a book once the app is actually ready ---------- */
 function splash() {
-  if (/nosplash/.test(location.search)) return;
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, v = $('#view').getBoundingClientRect();
+  if (/nosplash/.test(location.search) || document.hidden) return; // no point animating a page nobody is looking at
+  placeRings(); const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, v = $('#view').getBoundingClientRect();
   const el = document.createElement('div'); el.id = 'splash'; el.setAttribute('role', 'status'); el.setAttribute('aria-label', 'Opening Owlery');
   el.style.cssText = `--x:${v.left}px;--y:${v.top}px;--w:${v.width}px;--h:${v.height}px`;
   let stars = ''; for (let i = 0; i < 44; i++) stars += `<i class="star" style="left:${rnd(0, 100)}%;top:${rnd(0, 100)}%;animation-delay:${rnd(0, 4)}s;--s:${rnd(.6, 1.5)}"></i>`;
@@ -887,14 +891,16 @@ function splash() {
     <div class="cover"><div class="face front"><div class="sp-emblem">${owlPerch}</div><div class="sp-title"><span>Owlery</span></div><div class="sp-sub">a little castle for two</div>
       <div class="sp-env">💌</div><div class="sp-seal"><b>🦉</b></div><div class="sp-wait">opening the doors<i>.</i><i>.</i><i>.</i></div></div><div class="face back"></div></div>
     <div class="sp-fly">${owlSVG}</div>`;
-  document.body.appendChild(el);
+  document.body.appendChild(el); document.body.classList.add('splashing');
   if (!reduce) el.querySelector('.sp-fly').animate([
     { transform: 'translate(-15vw, 46vh) scale(1.2) rotate(-8deg)', opacity: 0 }, { opacity: 1, offset: .12 },
     { transform: 'translate(40vw, 20vh) scale(2.1) rotate(2deg)', offset: .5 }, { transform: 'translate(115vw, 6vh) scale(1.3) rotate(10deg)', opacity: 1 },
   ], { duration: 2100, delay: 250, easing: 'ease-in-out', fill: 'both' });
-  const MIN = reduce ? 500 : 2900, t0 = performance.now(); let opened = false;
+  const MIN = reduce ? 1100 : 2900, t0 = performance.now(); let opened = false; // reduced motion: show the finished cover briefly, no animation
   const ready = () => !SYNC.wanted || SYNC.state !== 'boot'; // wait for sign-in / first sync, not just a timer
-  const open = () => { if (opened) return; opened = true; clearInterval(iv); SFX.play('flip'); el.classList.add('open'); setTimeout(() => el.remove(), reduce ? 50 : 2000); };
+  const gone = () => { el.remove(); document.body.classList.remove('splashing'); };
+  const open = () => { if (opened) return; opened = true; clearInterval(iv); SFX.play('flip'); el.classList.add('open'); setTimeout(gone, reduce ? 50 : 2000); };
+  document.addEventListener('visibilitychange', () => { if (document.hidden && !opened) { opened = true; clearInterval(iv); gone(); } }, { once: true }); // tabbed away: don't hold the app hostage
   const iv = setInterval(() => { const dt = performance.now() - t0; if (dt > MIN && ready()) open(); else if (dt > MIN) el.classList.add('waiting'); if (dt > 12000) open(); }, 120);
   el.addEventListener('click', () => { if (performance.now() - t0 > 900 && ready()) open(); });
   if (!reduce) { setTimeout(() => SFX.play('seal'), 1550); setTimeout(() => SFX.play('writing'), 1750); } // seal thump, then the quill writes the title

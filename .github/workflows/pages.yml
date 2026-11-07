@@ -33,13 +33,12 @@ jobs:
 
       - name: Write config.js from repository secrets
         env:
-          GIPHY_KEY: ${{ secrets.GIPHY_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: |
           test -n "$SUPABASE_URL" && test -n "$SUPABASE_KEY" || { echo "Add the SUPABASE_URL and SUPABASE_KEY repository secrets first (Settings > Secrets and variables > Actions)."; exit 1; }
           case "$SUPABASE_KEY" in sb_secret_*|eyJ*) echo "SUPABASE_KEY must be the PUBLISHABLE key (sb_publishable_...), never a secret/service_role key."; exit 1;; esac
-          printf "window.CONFIG = { GIPHY_KEY: '%s', SUPABASE_URL: '%s', SUPABASE_KEY: '%s', DEMO: false };\n" "$GIPHY_KEY" "$SUPABASE_URL" "$SUPABASE_KEY" > _site/config.js
+          printf "window.CONFIG = { SUPABASE_URL: '%s', SUPABASE_KEY: '%s', DEMO: false };\n" "$SUPABASE_URL" "$SUPABASE_KEY" > _site/config.js
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
