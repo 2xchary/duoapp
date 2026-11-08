@@ -279,3 +279,18 @@ body.splashing #rings { z-index: 301; } /* the rings stay on top of the cover wh
 .wk-stk { flex: 1; min-width: 0; display: flex; justify-content: space-between; gap: .15rem; }
 .mini { flex: none; width: 2.05rem; height: 2.05rem; border-radius: 50%; background: #fbf6e8; border: .13rem solid #fff; box-shadow: 0 0 0 1px #0002, 1px 2px 3px #0004; font-size: 1.05rem; line-height: 1; display: grid; place-items: center; opacity: .75; transition: transform .12s; }
 .mini.on { background: var(--wine); opacity: 1; transform: scale(1.18) rotate(-4deg); box-shadow: 0 0 0 1px #0004, 2px 4px 6px #0006; }
+
+/* Busy blocks: never clip the handwriting title; compact blocks go side-by-side */
+.blk { container-type: size; align-items: stretch; }
+.blk b { line-height: 1.25; padding: .08em 0; flex: none; }
+.blk small { line-height: 1.2; }
+@container (max-height: 3.4rem) {
+  .blk { flex-direction: row !important; align-items: center !important; gap: .4rem; }
+  .blk b { flex: 0 1 auto; min-width: 0; }
+  .blk small { flex: none; }
+}
+@container (max-height: 3.4rem) {
+  .blk { padding-block: 0; }
+  .blk b, .blk.short b { font-size: min(1.1rem, 80cqh); line-height: 1.15; padding: 0; }
+  .blk small { font-size: min(.95rem, 68cqh); line-height: 1.15; }
+}
